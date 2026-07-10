@@ -25,12 +25,9 @@ namespace Unverum
         private string MOD_ID;
         private string fileName;
         private string fileDescription;
-        private bool cancelled;
         private bool downloadAll;
         private HttpClient client = new();
-        private CancellationTokenSource cancellationToken = new();
         private GameBananaAPIV4 response = new();
-        private ProgressBox progressBox;
         public async void BrowserDownload(string game, GameBananaRecord record)
         {
             DownloadWindow downloadWindow = new DownloadWindow(record);
@@ -64,10 +61,17 @@ namespace Unverum
                         fileDescription = file.Description;
                         if (downloadUrl != null && fileName != null)
                         {
-                            await DownloadFile(downloadUrl, fileName, new Progress<DownloadProgress>(ReportUpdateProgress),
-                                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Token));
-                            if (!cancelled)
+                            var item = DownloadManager.Add(record.Title);
+                            item.FileName = fileName;
+                            var success = await DownloadFile(downloadUrl, fileName, item);
+                            if (success)
+                            {
+                                item.Status = DownloadStatus.Extracting;
                                 await ExtractFile(fileName, game, record);
+                                item.Status = DownloadStatus.Completed;
+                                InstalledMods.Refresh();
+                                record.NotifyInstalled();
+                            }
                         }
                     }
                 }
@@ -75,10 +79,17 @@ namespace Unverum
                 {
                     if (downloadUrl != null && fileName != null)
                     {
-                        await DownloadFile(downloadUrl, fileName, new Progress<DownloadProgress>(ReportUpdateProgress),
-                            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Token));
-                        if (!cancelled)
+                        var item = DownloadManager.Add(record.Title);
+                        item.FileName = fileName;
+                        var success = await DownloadFile(downloadUrl, fileName, item);
+                        if (success)
+                        {
+                            item.Status = DownloadStatus.Extracting;
                             await ExtractFile(fileName, game, record);
+                            item.Status = DownloadStatus.Completed;
+                            InstalledMods.Refresh();
+                            record.NotifyInstalled();
+                        }
                     }
                 }
             }
@@ -93,10 +104,16 @@ namespace Unverum
                     downloadWindow.ShowDialog();
                     if (downloadWindow.YesNo)
                     {
-                        await DownloadFile(URL_TO_ARCHIVE, fileName, new Progress<DownloadProgress>(ReportUpdateProgress),
-                            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Token));
-                        if (!cancelled)
+                        var item = DownloadManager.Add(response.Title);
+                        item.FileName = fileName;
+                        var success = await DownloadFile(URL_TO_ARCHIVE, fileName, item);
+                        if (success)
+                        {
+                            item.Status = DownloadStatus.Extracting;
                             await ExtractFile(fileName, response.Game.Name.Replace(":", String.Empty), response);
+                            item.Status = DownloadStatus.Completed;
+                            InstalledMods.Refresh();
+                        }
                     }
                 }
             }
@@ -120,17 +137,11 @@ namespace Unverum
                 return false;
             }
         }
-        private void ReportUpdateProgress(DownloadProgress progress)
+        private void ReportUpdateProgress(DownloadProgress progress, DownloadItem item)
         {
-            if (progress.Percentage == 1)
-            {
-                progressBox.finished = true;
-            }
-            progressBox.progressBar.Value = progress.Percentage * 100;
-            progressBox.taskBarItem.ProgressValue = progress.Percentage;
-            progressBox.progressTitle.Text = $"Downloading {progress.FileName}...";
-            progressBox.progressText.Text = $"{Math.Round(progress.Percentage * 100, 2)}% " +
-                $"({StringConverters.FormatSize(progress.DownloadedBytes)} of {StringConverters.FormatSize(progress.TotalBytes)})";
+            item.Percentage = progress.Percentage * 100;
+            item.DownloadedBytes = progress.DownloadedBytes;
+            item.TotalBytes = progress.TotalBytes;
         }
 
         private bool ParseProtocol(string line)
@@ -349,7 +360,7 @@ namespace Unverum
             });
 
         }
-        private async Task DownloadFile(string uri, string fileName, Progress<DownloadProgress> progress, CancellationTokenSource cancellationToken)
+        private async Task<bool> DownloadFile(string uri, string fileName, DownloadItem item)
         {
             try
             {
@@ -366,44 +377,36 @@ namespace Unverum
                     {
                         MessageBox.Show($"Couldn't delete the already existing {Global.assemblyLocation}/Downloads/{fileName} ({e.Message})", 
                             "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
+                        item.Status = DownloadStatus.Error;
+                        return false;
                     }
                 }
-                progressBox = new ProgressBox(cancellationToken);
-                progressBox.progressBar.Value = 0;
-                progressBox.finished = false;
-                progressBox.Title = $"Download Progress";
-                progressBox.Show();
-                progressBox.Activate();
+                item.Status = DownloadStatus.Downloading;
+                var progress = new Progress<DownloadProgress>(p => ReportUpdateProgress(p, item));
                 // Write and download the file
                 using (var fs = new FileStream(
                     $@"{Global.assemblyLocation}{Global.s}Downloads{Global.s}{fileName}", FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    await client.DownloadAsync(uri, fs, fileName, progress, cancellationToken.Token);
+                    await client.DownloadAsync(uri, fs, fileName, progress, item.CancellationTokenSource.Token);
                 }
-                progressBox.Close();
+                return true;
             }
             catch (OperationCanceledException)
             {
-                // Remove the file is it will be a partially downloaded one and close up
-                File.Delete($@"{Global.assemblyLocation}{Global.s}Downloads{Global.s}{fileName}");
-                if (progressBox != null)
+                // Remove the file as it will be a partially downloaded one
+                try
                 {
-                    progressBox.finished = true;
-                    progressBox.Close();
-                    cancelled = true;
+                    File.Delete($@"{Global.assemblyLocation}{Global.s}Downloads{Global.s}{fileName}");
                 }
-                return;
+                catch { }
+                item.Status = DownloadStatus.Cancelled;
+                return false;
             }
             catch (Exception e)
             {
-                if (progressBox != null)
-                {
-                    progressBox.finished = true;
-                    progressBox.Close();
-                }
+                item.Status = DownloadStatus.Error;
                 MessageBox.Show($"Error whilst downloading {fileName}. {e.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                cancelled = true;
+                return false;
             }
         }
 

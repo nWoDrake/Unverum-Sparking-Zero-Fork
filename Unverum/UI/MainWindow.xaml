@@ -11,6 +11,7 @@
         Height="750" Width="1280" MinHeight="750" MinWidth="1280" Loaded="WindowLoaded" KeyDown="Window_KeyDown">
     <Window.Resources>
         <FontFamily x:Key="Monospace">../Assets/#Roboto Mono</FontFamily>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <DataTemplate x:Key="ModTemplate">
             <Border CornerRadius="5" Margin="5">
                 <Border.BorderBrush>
@@ -48,6 +49,13 @@
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
+                    <Border Panel.ZIndex="5" CornerRadius="4" Background="#2E7D32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,14,9,0" Padding="6,2,6,2"
+                            Visibility="{Binding Path=IsInstalled, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <fa5:SvgAwesome Icon="Solid_Check" Foreground="#f2f2f2" Width="12" Height="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="Installed" Foreground="#f2f2f2" FontSize="12" FontWeight="Medium" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
                     <Rectangle Height="172" Panel.ZIndex="3" Fill="#202020" Opacity="0.99" Stretch="UniformToFill" Margin="5,10,5,5" VerticalAlignment="Center">
                         <Rectangle.Style>
                             <Style TargetType="{x:Type Rectangle}">
@@ -417,92 +425,8 @@
                                   VerticalContentAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                             <ComboBoxItem IsSelected="True">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/dbfz.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Dragon Ball FighterZ" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <Image Source="../Assets/Icons/DBSZ.jpg" Width="27" Margin="4,0,10,0"/>
                                     <TextBlock Text="Dragon Ball Sparking! ZERO" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/mhoj2.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="My Hero One's Justice 2" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/gbvs.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="Granblue Fantasy: Versus" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/GBVSR.jpg" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="Granblue Fantasy Versus: Rising" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/ggs.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="Guilty Gear -Strive-" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/jf.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="Jump Force" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/kh3.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="Kingdom Hearts III" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/sn.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="Scarlet Nexus" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/toa.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="Tales of Arise" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/ds.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="Demon Slayer" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/im.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="IDOLM@STER" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/smtv.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="Shin Megami Tensei V" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/KOFXV.jpg" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="The King of Fighters XV" VerticalAlignment="Center" FontWeight="Medium"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Image Source="../Assets/Icons/dnf.png" Width="27" Margin="4,0,10,0"/>
-                                    <TextBlock Text="DNF Duel" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </ComboBoxItem>
                         </ComboBox>
@@ -591,6 +515,9 @@
 				</DataGrid.ColumnHeaderStyle>
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
+                                        <MenuItem Header="Enable Selected" IsCheckable="False" Click="EnableItem_Click"/>
+                                        <MenuItem Header="Disable Selected" IsCheckable="False" Click="DisableItem_Click"/>
+                                        <Separator/>
                                         <MenuItem Header="Fetch Metadata" IsCheckable="False" Click="FetchItem_Click"/>
                                         <MenuItem Header="Rename Mod" IsCheckable="False" Click="EditItem_Click"/>
                                         <MenuItem Header="Configure Paks" IsCheckable="False" Click="ConfigurePaksItem_Click"/>
@@ -775,94 +702,10 @@
                         </StackPanel>
                     </Grid>
                     <ComboBox Margin="10,0,0,0" IsEnabled="False" Name="GameFilterBox" Height="35" Width="60" HorizontalAlignment="Stretch" FontSize="18" FontWeight="Medium" SelectionChanged="GameFilterSelectionChanged">
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/dbfz.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Dragon Ball FighterZ" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
+                        <ComboBoxItem IsSelected="True">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Image Source="../Assets/Icons/DBSZ.jpg" Width="27" Margin="4,0,10,0"/>
                                 <TextBlock Text="Dragon Ball Sparking! ZERO" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/mhoj2.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="My Hero One's Justice 2" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/gbvs.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Granblue Fantasy: Versus" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/GBVSR.jpg" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Granblue Fantasy Versus: Rising" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/ggs.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Guilty Gear -Strive-" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/jf.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Jump Force" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/kh3.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Kingdom Hearts III" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/sn.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Scarlet Nexus" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/toa.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Tales of Arise" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/ds.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Demon Slayer" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/im.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="IDOLM@STER" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/smtv.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="Shin Megami Tensei V" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/KOFXV.jpg" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="The King of Fighters XV" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Source="../Assets/Icons/dnf.png" Width="27" Margin="4,0,10,0"/>
-                                <TextBlock Text="DNF Duel" VerticalAlignment="Center" FontWeight="Medium"/>
                             </StackPanel>
                         </ComboBoxItem>
                     </ComboBox>
@@ -1003,6 +846,77 @@
                             </ListView.ItemsPanel>
                         </ListView>
                     </Border>
+                </Grid>
+            </TabItem>
+            <TabItem Name="DownloadsTab" FontSize="18" HorizontalAlignment="Center" Header="Downloads">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="10,10,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Active and Recent Downloads" FontSize="20" FontWeight="Medium" Foreground="#f2f2f2" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Name="ClearCompletedButton" Content="Clear Completed" FontSize="14" Padding="10,5,10,5" Click="ClearCompleted_Click"/>
+                    </Grid>
+                    <TextBlock Name="NoDownloadsPanel" Grid.Row="1" Text="No downloads yet. Download a mod from the Browse Mods tab!" FontSize="16" Foreground="#a0a0a0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <ListView Name="DownloadsList" Grid.Row="1" Margin="10" Background="Transparent" BorderBrush="Transparent"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListViewItem}">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Focusable" Value="False"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="5" Margin="0,5,0,5" Padding="10">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="#101010" Opacity="0.75"/>
+                                    </Border.Background>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="Medium" Foreground="#f2f2f2" TextTrimming="WordEllipsis"/>
+                                            <TextBlock Text="{Binding FileName}" FontSize="12" Foreground="#a0a0a0" TextTrimming="WordEllipsis"/>
+                                            <ProgressBar Value="{Binding Percentage, Mode=OneWay}" Maximum="100" Height="8" Margin="0,6,0,4"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontSize="12" FontWeight="Medium" Text="{Binding StatusText}">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="{x:Type TextBlock}">
+                                                            <Setter Property="Foreground" Value="#f2f2f2"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding StatusText}" Value="Completed">
+                                                                    <Setter Property="Foreground" Value="#52FF00"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding StatusText}" Value="Error">
+                                                                    <Setter Property="Foreground" Value="#FFB0B0"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding StatusText}" Value="Cancelled">
+                                                                    <Setter Property="Foreground" Value="#FFFF00"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#a0a0a0" Margin="10,0,0,0" Text="{Binding ProgressText}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="Cancel" FontSize="14" Padding="10,5,10,5" VerticalAlignment="Center" Margin="10,0,0,0"
+                                                Click="CancelDownload_Click"
+                                                Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </Grid>
             </TabItem>
         </TabControl>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -29,6 +29,8 @@ namespace Unverum
     /// </summary>
     public partial class MainWindow : Window
     {
+        // Unverum now only supports Dragon Ball Sparking! ZERO
+        private static GameFilter CurrentGameFilter => GameFilter.DBSZ;
         public string version;
         // Separated from Global.config so that order is updated when datagrid is modified
         public List<string> exes;
@@ -94,16 +96,13 @@ namespace Unverum
                 Global.games.Add(game);
             }
 
+            // Only Dragon Ball Sparking! ZERO is supported
+            Global.config.CurrentGame = Global.games[0];
             if (Global.config.Configs == null)
-            {
-                Global.config.CurrentGame = (((GameBox.SelectedValue as ComboBoxItem).Content as StackPanel).Children[1] as TextBlock).Text.Trim().Replace(":", String.Empty);
-                Global.config.Configs = new()
-                {
-                    { Global.config.CurrentGame, new() }
-                };
-            }
-            else
-                GameBox.SelectedIndex = Global.games.IndexOf(Global.config.CurrentGame);
+                Global.config.Configs = new();
+            if (!Global.config.Configs.ContainsKey(Global.config.CurrentGame))
+                Global.config.Configs.Add(Global.config.CurrentGame, new());
+            GameBox.SelectedIndex = 0;
 
             if (GameBox.SelectedIndex == 7)
                 DiscordButton.Visibility = Visibility.Collapsed;
@@ -169,7 +168,16 @@ namespace Unverum
 
             RefreshAll();
             Refresh();
+            InstalledMods.Refresh();
             ModsWatcher.EnableRaisingEvents = true;
+
+            // Downloads tab wiring
+            DownloadsList.ItemsSource = DownloadManager.Downloads;
+            NoDownloadsPanel.Visibility = DownloadManager.Downloads.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            DownloadManager.Downloads.CollectionChanged += (s, args) =>
+            {
+                NoDownloadsPanel.Visibility = DownloadManager.Downloads.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            };
 
             defaultFlow.Blocks.Add(ConvertToFlowParagraph(defaultText));
             DescriptionWindow.Document = defaultFlow;
@@ -208,6 +216,7 @@ namespace Unverum
         private void OnModified(object sender, FileSystemEventArgs e)
         {
             Refresh();
+            InstalledMods.Refresh();
             Global.UpdateConfig();
             // Bring window to front after download is done
             App.Current.Dispatcher.Invoke((Action)delegate
@@ -386,7 +395,7 @@ namespace Unverum
                 emu = LauncherOptionsBox.SelectedIndex == 0;
                 epic = LauncherOptionsBox.SelectedIndex == 2;
             });
-            var game = (GameFilter)index;
+            var game = CurrentGameFilter;
             switch (game)
             {
                 case GameFilter.DBFZ:
@@ -584,7 +593,7 @@ namespace Unverum
                     {
                         var id = "";
                         var epic = false;
-                        switch ((GameFilter)GameBox.SelectedIndex)
+                        switch (CurrentGameFilter)
                         {
                             case GameFilter.DBFZ:
                                 Global.logger.WriteLine($"Mods will not work since DBFZ is being launched through Steam", LoggerType.Warning);
@@ -649,7 +658,7 @@ namespace Unverum
                         UseShellExecute = true,
                         Verb = "open"
                     };
-                    if (Global.config.Configs[Global.config.CurrentGame].LauncherOptionIndex == 0 && (GameFilter)GameBox.SelectedIndex == GameFilter.GBVSR)
+                    if (Global.config.Configs[Global.config.CurrentGame].LauncherOptionIndex == 0 && CurrentGameFilter == GameFilter.GBVSR)
                         ps.Arguments = "-fileopenlog";
                     Process.Start(ps);
                 }
@@ -664,7 +673,7 @@ namespace Unverum
         private void GameBanana_Click(object sender, RoutedEventArgs e)
         {
             var id = "";
-            switch ((GameFilter)GameFilterBox.SelectedIndex)
+            switch (CurrentGameFilter)
             {
                 case GameFilter.DBFZ:
                     id = "6246";
@@ -758,6 +767,46 @@ namespace Unverum
             ConsoleWindow.ScrollToEnd();
         }
 
+        private void EnableItem_Click(object sender, RoutedEventArgs e)
+        {
+            SetSelectedModsEnabled(true);
+        }
+        private void DisableItem_Click(object sender, RoutedEventArgs e)
+        {
+            SetSelectedModsEnabled(false);
+        }
+        private void SetSelectedModsEnabled(bool enabled)
+        {
+            if (ModGrid.SelectedItems == null || ModGrid.SelectedItems.Count == 0)
+                return;
+            var selectedMods = ModGrid.SelectedItems.Cast<Mod>().ToList();
+            var count = 0;
+            foreach (var row in selectedMods)
+            {
+                if (row.enabled != enabled)
+                {
+                    row.enabled = enabled;
+                    ++count;
+                }
+                var loadout = Global.config.Configs[Global.config.CurrentGame].CurrentLoadout;
+                var configMod = Global.config.Configs[Global.config.CurrentGame].Loadouts[loadout]
+                    .FirstOrDefault(x => x.name == row.name);
+                if (configMod != null)
+                    configMod.enabled = enabled;
+            }
+            Global.UpdateConfig();
+            ModGrid.Items.Refresh();
+            Global.logger.WriteLine($"{(enabled ? "Enabled" : "Disabled")} {count} mod(s)", LoggerType.Info);
+        }
+        private void CancelDownload_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            (button?.DataContext as DownloadItem)?.Cancel();
+        }
+        private void ClearCompleted_Click(object sender, RoutedEventArgs e)
+        {
+            DownloadManager.ClearCompleted();
+        }
         private void ModGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             FrameworkElement element = sender as FrameworkElement;
@@ -835,7 +884,7 @@ namespace Unverum
                 {
                     index = GameBox.SelectedIndex;
                 });
-                if ((GameFilter)index == GameFilter.MHOJ2)
+                if (CurrentGameFilter == GameFilter.MHOJ2)
                     foreach (var file in Directory.GetFiles(Path.GetDirectoryName(Global.config.Configs[Global.config.CurrentGame].ModsFolder), "*", SearchOption.TopDirectoryOnly))
                         if (Path.GetExtension(file).Equals(".pak", StringComparison.InvariantCultureIgnoreCase)
                             || Path.GetExtension(file).Equals(".sig", StringComparison.InvariantCultureIgnoreCase))
@@ -1439,7 +1488,7 @@ namespace Unverum
             {
                 ErrorPanel.Visibility = Visibility.Collapsed;
                 // Initialize categories and games
-                var gameIDS = new string[] { "6246", "21179", "11605", "8897", "19552", "11534", "7019", "9219", "12028", "13821", "14246", "14247", "14768", "15769", "16693" };
+                var gameIDS = new string[] { "21179" };
                 var types = new string[] { "Mod", "Wip", "Sound" };
                 var gameCounter = 0;
                 foreach (var gameID in gameIDS)
@@ -1504,10 +1553,10 @@ namespace Unverum
                             BrowserMessage.Text = "Uh oh! Something went wrong while deserializing the categories...";
                             return;
                         }
-                        if (!cats.ContainsKey((GameFilter)gameCounter))
-                            cats.Add((GameFilter)gameCounter, new Dictionary<TypeFilter, List<GameBananaCategory>>());
-                        if (!cats[(GameFilter)gameCounter].ContainsKey((TypeFilter)counter))
-                            cats[(GameFilter)gameCounter].Add((TypeFilter)counter, response);
+                        if (!cats.ContainsKey(GameFilter.DBSZ))
+                            cats.Add(GameFilter.DBSZ, new Dictionary<TypeFilter, List<GameBananaCategory>>());
+                        if (!cats[GameFilter.DBSZ].ContainsKey((TypeFilter)counter))
+                            cats[GameFilter.DBSZ].Add((TypeFilter)counter, response);
 
                         // Make more requests if needed
                         if (totalPages > 1)
@@ -1561,7 +1610,7 @@ namespace Unverum
                                     BrowserMessage.Text = "Uh oh! Something went wrong while deserializing the categories...";
                                     return;
                                 }
-                                cats[(GameFilter)gameCounter][(TypeFilter)counter] = cats[(GameFilter)gameCounter][(TypeFilter)counter].Concat(response).ToList();
+                                cats[GameFilter.DBSZ][(TypeFilter)counter] = cats[GameFilter.DBSZ][(TypeFilter)counter].Concat(response).ToList();
                             }
                         }
                         counter++;
@@ -1572,7 +1621,7 @@ namespace Unverum
             filterSelect = true;
             GameFilterBox.SelectedIndex = GameBox.SelectedIndex;
             FilterBox.ItemsSource = FilterBoxList;
-            CatBox.ItemsSource = All.Concat(cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == 0).OrderBy(y => y.ID));
+            CatBox.ItemsSource = All.Concat(cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == 0).OrderBy(y => y.ID));
             SubCatBox.ItemsSource = None;
             CatBox.SelectedIndex = 0;
             SubCatBox.SelectedIndex = 0;
@@ -1584,14 +1633,14 @@ namespace Unverum
         private void OnBrowserTabSelected(object sender, RoutedEventArgs e)
         {
             managerSelected = false;
+            // Refresh installed tags so downloaded mods are marked
+            InstalledMods.Refresh();
+            RefreshInstalledTags();
             if (GameFilterBox.SelectedIndex != 7)
                 DiscordButton.Visibility = Visibility.Visible;
             else
                 DiscordButton.Visibility = Visibility.Collapsed;
-            if (GameFilterBox.SelectedIndex == 1)
-                SZFilters.Visibility = Visibility.Visible;
-            else
-                SZFilters.Visibility = Visibility.Collapsed;
+            SZFilters.Visibility = Visibility.Visible;
             if (!selected)
             {
                 InitializeBrowser();
@@ -1599,11 +1648,15 @@ namespace Unverum
                     DiscordButton.Visibility = Visibility.Visible;
                 else
                     DiscordButton.Visibility = Visibility.Collapsed;
-                if (GameBox.SelectedIndex == 1)
-                    SZFilters.Visibility = Visibility.Visible;
-                else
-                    SZFilters.Visibility = Visibility.Collapsed;
+                SZFilters.Visibility = Visibility.Visible;
             }
+        }
+        // Notifies every record currently in the feed to re-evaluate its IsInstalled binding
+        private void RefreshInstalledTags()
+        {
+            if (FeedBox.ItemsSource is System.Collections.IEnumerable records)
+                foreach (var record in records)
+                    (record as GameBananaRecord)?.NotifyInstalled();
         }
         bool managerSelected = true;
         private void OnManagerTabSelected(object sender, RoutedEventArgs e)
@@ -1613,10 +1666,7 @@ namespace Unverum
                 DiscordButton.Visibility = Visibility.Visible;
             else
                 DiscordButton.Visibility = Visibility.Collapsed;
-            if (GameFilterBox.SelectedIndex == 1)
-                SZFilters.Visibility = Visibility.Visible;
-            else
-                SZFilters.Visibility = Visibility.Collapsed;
+            SZFilters.Visibility = Visibility.Visible;
         }
 
         private static int page = 1;
@@ -1666,9 +1716,11 @@ namespace Unverum
             PageLeft.IsEnabled = false;
             PageRight.IsEnabled = false;
             var search = searched ? SearchBar.Text : null;
-            await FeedGenerator.GetFeed(page, (GameFilter)GameFilterBox.SelectedIndex, (TypeFilter)TypeBox.SelectedIndex, (FeedFilter)FilterBox.SelectedIndex, (GameBananaCategory)CatBox.SelectedItem,
+            await FeedGenerator.GetFeed(page, CurrentGameFilter, (TypeFilter)TypeBox.SelectedIndex, (FeedFilter)FilterBox.SelectedIndex, (GameBananaCategory)CatBox.SelectedItem,
                 (GameBananaCategory)SubCatBox.SelectedItem, (PerPageBox.SelectedIndex + 1) * 10, (bool)NSFWCheckbox.IsChecked, search, (bool)ZsJsonCheckbox.IsChecked, (bool)ColorZCheckbox.IsChecked);
             FeedBox.ItemsSource = FeedGenerator.CurrentFeed.Records;
+            InstalledMods.Refresh();
+            RefreshInstalledTags();
             if (FeedGenerator.error)
             {
                 LoadingBar.Visibility = Visibility.Collapsed;
@@ -1765,10 +1817,7 @@ namespace Unverum
                     DiscordButton.Visibility = Visibility.Visible;
                 else
                     DiscordButton.Visibility = Visibility.Collapsed;
-                if (GameFilterBox.SelectedIndex == 1)
-                    SZFilters.Visibility = Visibility.Visible;
-                else
-                    SZFilters.Visibility = Visibility.Collapsed;
+                SZFilters.Visibility = Visibility.Visible;
                 filterSelect = true;
                 if (!searched)
                 {
@@ -1776,14 +1825,14 @@ namespace Unverum
                     FilterBox.SelectedIndex = 1;
                 }
                 // Set categories
-                if (cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == 0))
-                    CatBox.ItemsSource = All.Concat(cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == 0).OrderBy(y => y.ID));
+                if (cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == 0))
+                    CatBox.ItemsSource = All.Concat(cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == 0).OrderBy(y => y.ID));
                 else
                     CatBox.ItemsSource = None;
                 CatBox.SelectedIndex = 0;
                 var cat = (GameBananaCategory)CatBox.SelectedValue;
-                if (cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == cat.ID))
-                    SubCatBox.ItemsSource = All.Concat(cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == cat.ID).OrderBy(y => y.ID));
+                if (cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == cat.ID))
+                    SubCatBox.ItemsSource = All.Concat(cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == cat.ID).OrderBy(y => y.ID));
                 else
                     SubCatBox.ItemsSource = None;
                 SubCatBox.SelectedIndex = 0;
@@ -1805,14 +1854,14 @@ namespace Unverum
                     FilterBox.SelectedIndex = 1;
                 }
                 // Set categories
-                if (cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == 0))
-                    CatBox.ItemsSource = All.Concat(cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == 0).OrderBy(y => y.ID));
+                if (cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == 0))
+                    CatBox.ItemsSource = All.Concat(cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == 0).OrderBy(y => y.ID));
                 else
                     CatBox.ItemsSource = None;
                 CatBox.SelectedIndex = 0;
                 var cat = (GameBananaCategory)CatBox.SelectedValue;
-                if (cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == cat.ID))
-                    SubCatBox.ItemsSource = All.Concat(cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == cat.ID).OrderBy(y => y.ID));
+                if (cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == cat.ID))
+                    SubCatBox.ItemsSource = All.Concat(cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == cat.ID).OrderBy(y => y.ID));
                 else
                     SubCatBox.ItemsSource = None;
                 SubCatBox.SelectedIndex = 0;
@@ -1835,8 +1884,8 @@ namespace Unverum
                 }
                 // Set Categories
                 var cat = (GameBananaCategory)CatBox.SelectedValue;
-                if (cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == cat.ID))
-                    SubCatBox.ItemsSource = All.Concat(cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == cat.ID).OrderBy(y => y.ID));
+                if (cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == cat.ID))
+                    SubCatBox.ItemsSource = All.Concat(cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == cat.ID).OrderBy(y => y.ID));
                 else
                     SubCatBox.ItemsSource = None;
                 SubCatBox.SelectedIndex = 0;
@@ -2145,10 +2194,7 @@ namespace Unverum
                     DiscordButton.Visibility = Visibility.Collapsed;
                 else
                     DiscordButton.Visibility = Visibility.Visible;
-                if (GameFilterBox.SelectedIndex == 1)
-                    SZFilters.Visibility = Visibility.Visible;
-                else
-                    SZFilters.Visibility = Visibility.Collapsed;
+                SZFilters.Visibility = Visibility.Visible;
                 Global.config.CurrentGame = (((GameBox.SelectedValue as ComboBoxItem).Content as StackPanel).Children[1] as TextBlock).Text.Trim().Replace(":", String.Empty);
 
                 if (!Global.config.Configs.ContainsKey(Global.config.CurrentGame))
@@ -2272,14 +2318,14 @@ namespace Unverum
                 FilterBox.SelectedIndex = 3;
                 NSFWCheckbox.IsChecked = true;
                 // Set categories
-                if (cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == 0))
-                    CatBox.ItemsSource = All.Concat(cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == 0).OrderBy(y => y.ID));
+                if (cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == 0))
+                    CatBox.ItemsSource = All.Concat(cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == 0).OrderBy(y => y.ID));
                 else
                     CatBox.ItemsSource = None;
                 CatBox.SelectedIndex = 0;
                 var cat = (GameBananaCategory)CatBox.SelectedValue;
-                if (cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == cat.ID))
-                    SubCatBox.ItemsSource = All.Concat(cats[(GameFilter)GameFilterBox.SelectedIndex][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == cat.ID).OrderBy(y => y.ID));
+                if (cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Any(x => x.RootID == cat.ID))
+                    SubCatBox.ItemsSource = All.Concat(cats[CurrentGameFilter][(TypeFilter)TypeBox.SelectedIndex].Where(x => x.RootID == cat.ID).OrderBy(y => y.ID));
                 else
                     SubCatBox.ItemsSource = None;
                 SubCatBox.SelectedIndex = 0;
