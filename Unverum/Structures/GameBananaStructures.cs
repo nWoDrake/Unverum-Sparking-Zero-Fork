@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -175,8 +176,18 @@ namespace Unverum
         [JsonPropertyName("text")]
         public string Text { get; set; }
     }
-    public class GameBananaRecord
+    public class GameBananaRecord : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+        [JsonIgnore]
+        public bool IsInstalled => InstalledMods.IsInstalled(Link, Title);
+        /// <summary>
+        /// Forces the UI to re-evaluate the IsInstalled binding.
+        /// </summary>
+        public void NotifyInstalled()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsInstalled)));
+        }
         [JsonPropertyName("_sName")]
         public string Title { get; set; }
         [JsonIgnore]
