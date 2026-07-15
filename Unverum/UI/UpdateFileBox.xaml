@@ -10,6 +10,7 @@
         ResizeMode="NoResize" MinWidth="600"
         Background="#202020" ShowActivated="True" Closing="Window_Closing" SizeToContent="WidthAndHeight">
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <DataTemplate x:Key="FileTemplate">
             <Button Click="SelectButton_Click"  Margin="5" HorizontalContentAlignment="Stretch" Background="#494949">
                 <Button.Resources>
@@ -23,7 +24,16 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" FontSize="18" FontWeight="Bold" Foreground="#f2f2f2" Text="{Binding Path=FileName}"/>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal">
+                        <TextBlock FontSize="18" FontWeight="Bold" Foreground="#f2f2f2" Text="{Binding Path=FileName}" VerticalAlignment="Center"/>
+                        <Border CornerRadius="4" Background="#2E7D32" Margin="8,0,0,0" Padding="6,2,6,2" VerticalAlignment="Center"
+                                Visibility="{Binding Path=IsInstalled, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <fa5:SvgAwesome Icon="Solid_Check" Foreground="#f2f2f2" Width="11" Height="11" VerticalAlignment="Center"/>
+                                <TextBlock Text="Installed" Foreground="#f2f2f2" FontSize="11" FontWeight="Medium" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                     <TextBlock Grid.Row="1" FontSize="13" Foreground="#a2a2a2">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0} • Uploaded {1} • {2} downloads">

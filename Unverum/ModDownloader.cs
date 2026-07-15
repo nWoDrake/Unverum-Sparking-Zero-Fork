@@ -44,6 +44,8 @@ namespace Unverum
                 }
                 else if (record.AllFiles.Count > 1)
                 {
+                    // Make sure installed-file tags are up to date before showing the file picker
+                    InstalledMods.Refresh();
                     UpdateFileBox fileBox = new UpdateFileBox(record.AllFiles, record.Title);
                     fileBox.Activate();
                     fileBox.ShowDialog();
@@ -235,6 +237,7 @@ namespace Unverum
                             metadata.submitter = record.Owner.Name;
                             metadata.description = record.Description;
                             metadata.filedescription = fileDescription;
+                            metadata.filename = fileName;
                             metadata.preview = record.Image;
                             metadata.homepage = record.Link;
                             metadata.avi = record.Owner.Avatar;
@@ -331,6 +334,7 @@ namespace Unverum
                             metadata.submitter = record.Owner.Name;
                             metadata.description = record.Description;
                             metadata.filedescription = fileDescription;
+                            metadata.filename = fileName;
                             metadata.preview = record.Image;
                             metadata.homepage = record.Link;
                             metadata.avi = record.Owner.Avatar;

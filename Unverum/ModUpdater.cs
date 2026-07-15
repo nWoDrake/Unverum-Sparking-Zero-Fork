@@ -243,6 +243,7 @@ namespace Unverum
                         if (File.Exists($@"{mod}{Global.s}mod.json"))
                         {
                             metadata.filedescription = fileBox.chosenFileDescription;
+                            metadata.filename = fileBox.chosenFileName;
                             string metadataString = JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
                             File.WriteAllText($@"{mod}{Global.s}mod.json", metadataString);
                         }
@@ -254,6 +255,7 @@ namespace Unverum
                         if (File.Exists($@"{mod}{Global.s}mod.json"))
                         {
                             metadata.filedescription = files.ElementAt(0).Description;
+                            metadata.filename = files.ElementAt(0).FileName;
                             string metadataString = JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
                             File.WriteAllText($@"{mod}{Global.s}mod.json", metadataString);
                         }

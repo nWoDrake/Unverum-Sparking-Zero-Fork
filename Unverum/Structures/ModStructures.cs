@@ -21,6 +21,7 @@ namespace Unverum
         public string cat { get; set; }
         public string description { get; set; }
         public string filedescription { get; set; }
+        public string filename { get; set; }
         public Uri homepage { get; set; }
         public DateTime? lastupdate { get; set; }
     }
