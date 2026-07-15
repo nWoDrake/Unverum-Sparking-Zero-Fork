@@ -920,6 +920,9 @@
                 </Grid>
             </TabItem>
         </TabControl>
+        <!-- Toast notifications (bottom-right corner) -->
+        <StackPanel Name="ToastPanel" Panel.ZIndex="100" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                    Margin="0,0,20,20" IsHitTestVisible="False"/>
     </Grid>
 
 </Window>
