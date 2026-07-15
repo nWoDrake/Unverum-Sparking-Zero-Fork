@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -79,6 +79,8 @@ namespace Unverum
                 Notify(nameof(StatusText));
                 Notify(nameof(IsActive));
                 Notify(nameof(IsDone));
+                if (value == DownloadStatus.Completed)
+                    DownloadManager.RaiseCompleted(this);
             }
         }
 
@@ -116,6 +118,13 @@ namespace Unverum
     public static class DownloadManager
     {
         public static ObservableCollection<DownloadItem> Downloads { get; } = new();
+
+        /// <summary>
+        /// Raised whenever a download reaches the Completed status.
+        /// </summary>
+        public static event Action<DownloadItem> DownloadCompleted;
+        internal static void RaiseCompleted(DownloadItem item) =>
+            DownloadCompleted?.Invoke(item);
 
         public static DownloadItem Add(string title)
         {

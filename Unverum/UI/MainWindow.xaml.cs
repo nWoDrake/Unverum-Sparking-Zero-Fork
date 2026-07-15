@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Xml.Linq;
 using System.Net.Http;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using Unverum.UI;
 using System.Windows.Controls.Primitives;
 using System.Security.Cryptography;
@@ -177,6 +178,10 @@ namespace Unverum
             DownloadManager.Downloads.CollectionChanged += (s, args) =>
             {
                 NoDownloadsPanel.Visibility = DownloadManager.Downloads.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            };
+            DownloadManager.DownloadCompleted += item =>
+            {
+                App.Current.Dispatcher.Invoke(() => ShowDownloadToast(item));
             };
 
             defaultFlow.Blocks.Add(ConvertToFlowParagraph(defaultText));
@@ -806,6 +811,77 @@ namespace Unverum
         {
             DownloadManager.ClearCompleted();
         }
+        /// <summary>
+        /// Shows a temporary toast notification in the bottom-right corner
+        /// of the window when a download completes.
+        /// </summary>
+        private void ShowDownloadToast(DownloadItem item)
+        {
+            var toast = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(0x2a, 0x2a, 0x2a)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0x2E, 0x7D, 0x32)),
+                BorderThickness = new Thickness(0, 0, 0, 3),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(14, 10, 14, 10),
+                Margin = new Thickness(0, 8, 0, 0),
+                MaxWidth = 380,
+                Opacity = 0,
+                Effect = new System.Windows.Media.Effects.DropShadowEffect
+                {
+                    BlurRadius = 10,
+                    ShadowDepth = 2,
+                    Opacity = 0.5
+                }
+            };
+            var panel = new StackPanel { Orientation = Orientation.Horizontal };
+            panel.Children.Add(new FontAwesome5.SvgAwesome
+            {
+                Icon = FontAwesome5.EFontAwesomeIcon.Solid_CheckCircle,
+                Foreground = new SolidColorBrush(Color.FromRgb(0x52, 0xFF, 0x00)),
+                Width = 22,
+                Height = 22,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            var textPanel = new StackPanel { Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            textPanel.Children.Add(new TextBlock
+            {
+                Text = "Download completed",
+                Foreground = new SolidColorBrush(Color.FromRgb(0xf2, 0xf2, 0xf2)),
+                FontSize = 14,
+                FontWeight = FontWeights.Bold
+            });
+            textPanel.Children.Add(new TextBlock
+            {
+                Text = item.Title,
+                Foreground = new SolidColorBrush(Color.FromRgb(0xa0, 0xa0, 0xa0)),
+                FontSize = 12,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                MaxWidth = 320
+            });
+            panel.Children.Add(textPanel);
+            toast.Child = panel;
+            ToastPanel.Children.Add(toast);
+
+            // Fade in, stay 4 seconds, fade out and remove
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(250));
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(400))
+            {
+                BeginTime = TimeSpan.FromSeconds(4)
+            };
+            fadeOut.Completed += (s, e) => ToastPanel.Children.Remove(toast);
+            toast.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+            var timer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(250)
+            };
+            timer.Tick += (s, e) =>
+            {
+                timer.Stop();
+                toast.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+            };
+            timer.Start();
+        }
         private void ModGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             FrameworkElement element = sender as FrameworkElement;
@@ -1256,8 +1332,11 @@ namespace Unverum
                 para.Inlines.Add($" {metadata.cat}");
                 descFlow.Blocks.Add(para);
                 var text = "";
-                if (!String.IsNullOrEmpty(metadata.description))
-                    text += $"Description: {metadata.description}\n\n";
+                // Show the full mod description written by the author on GameBanana
+                if (!String.IsNullOrEmpty(metadata.text))
+                    text += $"{metadata.text}\n\n";
+                else if (!String.IsNullOrEmpty(metadata.description))
+                    text += $"{metadata.description}\n\n";
                 if (!String.IsNullOrEmpty(metadata.filedescription))
                     text += $"File Description: {metadata.filedescription}\n\n";
                 if (metadata.homepage != null && metadata.homepage.ToString().Length > 0)
@@ -1265,6 +1344,7 @@ namespace Unverum
                 var init = ConvertToFlowParagraph(text);
                 descFlow.Blocks.Add(init);
                 DescriptionWindow.Document = descFlow;
+                DescriptionWindow.ScrollToHome();
                 var descriptionText = new TextRange(DescriptionWindow.Document.ContentStart, DescriptionWindow.Document.ContentEnd);
                 descriptionText.ApplyPropertyValue(Inline.BaselineAlignmentProperty, BaselineAlignment.Center);
             }

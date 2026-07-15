@@ -557,8 +557,8 @@
                                 </Image>
 
                                 <fa5:ImageAwesome Foreground="#006ac1" Grid.Row="0" Icon="Solid_Spinner" Height="50" VerticalAlignment="Center" HorizontalAlignment="Center" Spin="True" SpinDuration="2"/>
-                                <RichTextBox FontSize="12" Padding="10" Grid.Row="1" Margin="3,5,10,3" Name="DescriptionWindow" Foreground="#F2F2F2" Background="#202020" BorderBrush="#424242" ClipToBounds="False"
-                     VerticalContentAlignment="Center" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" IsReadOnly="True" Grid.ColumnSpan="5" IsDocumentEnabled="True"
+                                <RichTextBox FontSize="12" Padding="10" Grid.Row="1" Margin="3,5,10,3" Name="DescriptionWindow" Foreground="#F2F2F2" Background="#202020" BorderBrush="#424242" ClipToBounds="True"
+                     VerticalContentAlignment="Top" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" IsReadOnly="True" Grid.ColumnSpan="5" IsDocumentEnabled="True"
                              FontWeight="Medium"/>
                             </Grid>
                         </Grid>
@@ -920,6 +920,9 @@
                 </Grid>
             </TabItem>
         </TabControl>
+        <!-- Toast notifications (bottom-right corner) -->
+        <StackPanel Name="ToastPanel" Panel.ZIndex="100" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                    Margin="0,0,20,20" IsHitTestVisible="False"/>
     </Grid>
 
 </Window>
