@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,6 +18,8 @@ namespace Unverum
         private static HashSet<string> _homepages = new(StringComparer.OrdinalIgnoreCase);
         // Sanitized folder names of installed mods
         private static HashSet<string> _folderNames = new(StringComparer.OrdinalIgnoreCase);
+        // Archive file names of installed mods (from mod.json)
+        private static HashSet<string> _fileNames = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Rescans the Mods folder of the current game and refreshes the caches.
@@ -26,6 +28,7 @@ namespace Unverum
         {
             var homepages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var folderNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var fileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             try
             {
                 var game = Global.config?.CurrentGame;
@@ -45,6 +48,8 @@ namespace Unverum
                                     var metadata = JsonSerializer.Deserialize<Metadata>(File.ReadAllText(metadataPath));
                                     if (metadata?.homepage != null)
                                         homepages.Add(metadata.homepage.ToString().TrimEnd('/'));
+                                    if (!String.IsNullOrEmpty(metadata?.filename))
+                                        fileNames.Add(metadata.filename);
                                 }
                                 catch { }
                             }
@@ -57,6 +62,7 @@ namespace Unverum
             {
                 _homepages = homepages;
                 _folderNames = folderNames;
+                _fileNames = fileNames;
             }
         }
 
@@ -81,6 +87,20 @@ namespace Unverum
                             return true;
                 }
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the given archive file name was already downloaded
+        /// and extracted as a mod folder.
+        /// </summary>
+        public static bool IsFileInstalled(string fileName)
+        {
+            if (String.IsNullOrEmpty(fileName))
+                return false;
+            lock (_lock)
+            {
+                return _fileNames.Contains(fileName);
             }
         }
     }

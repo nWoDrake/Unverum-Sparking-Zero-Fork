@@ -46,6 +46,8 @@ namespace Unverum
         public string Id { get; set; }
         [JsonPropertyName("_sFile")]
         public string FileName { get; set; }
+        [JsonIgnore]
+        public bool IsInstalled => InstalledMods.IsFileInstalled(FileName);
 
         [JsonPropertyName("_nFilesize")]
         public long Filesize { get; set; }

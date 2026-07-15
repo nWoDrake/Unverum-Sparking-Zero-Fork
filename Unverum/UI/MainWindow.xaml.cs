@@ -218,11 +218,10 @@ namespace Unverum
             Refresh();
             InstalledMods.Refresh();
             Global.UpdateConfig();
-            // Bring window to front after download is done
-            App.Current.Dispatcher.Invoke((Action)delegate
-            {
-                Activate();
-            });
+            // NOTE: We intentionally no longer call Activate() here.
+            // Doing so stole focus and pushed open dialogs (DownloadWindow /
+            // UpdateFileBox) behind the main window whenever another parallel
+            // download finished.
         }
 
         private async void Refresh()
