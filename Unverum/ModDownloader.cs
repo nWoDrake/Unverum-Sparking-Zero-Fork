@@ -158,7 +158,7 @@ namespace Unverum
                 DL_ID = match.Value;
                 MOD_TYPE = data[1];
                 MOD_ID = data[2];
-                URL = $"https://gamebanana.com/apiv6/{MOD_TYPE}/{MOD_ID}?_csvProperties=_sName,_aGame,_sProfileUrl,_aPreviewMedia,_sDescription,_aSubmitter,_aCategory,_aSuperCategory,_aFiles,_tsDateUpdated,_aAlternateFileSources,_bHasUpdates,_aLatestUpdates";
+                URL = $"https://gamebanana.com/apiv6/{MOD_TYPE}/{MOD_ID}?_csvProperties=_sName,_aGame,_sProfileUrl,_aPreviewMedia,_sDescription,_sText,_aSubmitter,_aCategory,_aSuperCategory,_aFiles,_tsDateUpdated,_aAlternateFileSources,_bHasUpdates,_aLatestUpdates";
                 return true;
             }
             catch (Exception e)
@@ -236,6 +236,7 @@ namespace Unverum
                             Metadata metadata = new Metadata();
                             metadata.submitter = record.Owner.Name;
                             metadata.description = record.Description;
+                            metadata.text = record.ConvertedText;
                             metadata.filedescription = fileDescription;
                             metadata.filename = fileName;
                             metadata.preview = record.Image;
@@ -333,6 +334,7 @@ namespace Unverum
                             Metadata metadata = new Metadata();
                             metadata.submitter = record.Owner.Name;
                             metadata.description = record.Description;
+                            metadata.text = record.ConvertedText;
                             metadata.filedescription = fileDescription;
                             metadata.filename = fileName;
                             metadata.preview = record.Image;

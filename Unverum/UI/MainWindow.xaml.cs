@@ -1332,8 +1332,11 @@ namespace Unverum
                 para.Inlines.Add($" {metadata.cat}");
                 descFlow.Blocks.Add(para);
                 var text = "";
-                if (!String.IsNullOrEmpty(metadata.description))
-                    text += $"Description: {metadata.description}\n\n";
+                // Show the full mod description written by the author on GameBanana
+                if (!String.IsNullOrEmpty(metadata.text))
+                    text += $"{metadata.text}\n\n";
+                else if (!String.IsNullOrEmpty(metadata.description))
+                    text += $"{metadata.description}\n\n";
                 if (!String.IsNullOrEmpty(metadata.filedescription))
                     text += $"File Description: {metadata.filedescription}\n\n";
                 if (metadata.homepage != null && metadata.homepage.ToString().Length > 0)
@@ -1341,6 +1344,7 @@ namespace Unverum
                 var init = ConvertToFlowParagraph(text);
                 descFlow.Blocks.Add(init);
                 DescriptionWindow.Document = descFlow;
+                DescriptionWindow.ScrollToHome();
                 var descriptionText = new TextRange(DescriptionWindow.Document.ContentStart, DescriptionWindow.Document.ContentEnd);
                 descriptionText.ApplyPropertyValue(Inline.BaselineAlignmentProperty, BaselineAlignment.Center);
             }

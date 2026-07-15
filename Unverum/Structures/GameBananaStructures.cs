@@ -95,6 +95,10 @@ namespace Unverum
         public List<GameBananaImage> Media { get; set; }
         [JsonPropertyName("_sDescription")]
         public string Description { get; set; }
+        [JsonPropertyName("_sText")]
+        public string Text { get; set; }
+        [JsonIgnore]
+        public string ConvertedText => GameBananaRecord.ConvertHtmlToText(Text);
         [JsonPropertyName("_aSubmitter")]
         public GameBananaMember Owner { get; set; }
         [JsonPropertyName("_aCategory")]
@@ -257,8 +261,10 @@ namespace Unverum
         public bool HasUpdates => DateAdded.CompareTo(DateUpdated) != 0;
         [JsonIgnore]
         public string DateUpdatedAgo => $"Updated {StringConverters.FormatTimeAgo(DateTime.UtcNow - DateUpdated)}";
-        private string ConvertHtmlToText(string html)
+        public static string ConvertHtmlToText(string html)
         {
+            if (String.IsNullOrEmpty(html))
+                return String.Empty;
             // Newlines
             html = html.Replace("<br>", "\n");
             html = html.Replace(@"</li>", "\n");
